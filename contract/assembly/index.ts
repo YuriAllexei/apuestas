@@ -18,7 +18,7 @@ import {Apuesta,apuestasRegistry,jugadorRegistry,Jugador,Deuda, Solicitud} from 
 export function setState(nombre:string,nearID:string,prestamo:boolean): string{
 
   if (jugadorRegistry.contains(nearID)) {
-    return `Ya hay una cuenta asociada a: ${nearID}    ${jugadorRegistry}`
+    return `Ya hay una cuenta asociada a: ${nearID}`
   }
   else{
     jugadorRegistry.set(nearID,new Jugador(nombre,nearID,prestamo))
@@ -33,7 +33,7 @@ export function solicitarPrestamo(idPrestamista:string,idPrestatario:string,cant
     const prestatario= jugadorRegistry.get(idPrestatario)
     
     if (prestamista==null || prestatario==null) {
-      return `${prestamista?.toString()}       ${prestatario?.toString()}`
+      return `vacío`
     }
 
     prestamista.requests.set(idPrestatario,new Solicitud("Adeudo",prestatario,cantidad,0.07))
@@ -126,7 +126,7 @@ export function setApuesta(entrada:f64,idNear:string,tipo:string,resultado:strin
     actual.fondos-=entrada
     const ap=new Apuesta(entrada,idNear,tipo,resultado)
     actual.historial.push(ap)
-    return `Apuesta registrada exitosamente ${ap.apuestaToString()}`
+    return `Apuesta registrada exitosamente`
   }
 else{
   return `El jugador no fue encontrado`
