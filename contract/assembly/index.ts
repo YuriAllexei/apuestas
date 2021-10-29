@@ -26,19 +26,25 @@ export function setState(nombre:string,nearID:string,prestamo:boolean): string{
     El cual ${prestamo? "sí" : "no"} acepta prestamos si quiere hacer depósitos a su cuenta verifíquela.`
   }
 }
-// export function solicitarPrestamo(idPrestamista:string,idPrestatario:string,cantidad:number): string {
-//   if (jugadorRegistry.has(idPrestamista) && jugadorRegistry.has(idPrestatario) && idPrestatario!=idPrestamista) {
-//     const prestamista= jugadorRegistry.get(idPrestamista)
-//     const prestatario= jugadorRegistry.get(idPrestatario)
 
-//     prestamista.requests.set(idPrestatario,new Solicitud("Adeudo",prestatario,cantidad,0.07))
-//     prestatario.requests.set(idPrestamista,new Solicitud("Deuda",prestamista,cantidad,0.07))
-//     return "Solicitud de préstamo enviada"
-//   }
-//   else{
-//     return "Solicitud de prestamo fracasada. Revise los ID's de near de nuevo."
-//   }
-// }
+export function solicitarPrestamo(idPrestamista:string,idPrestatario:string,cantidad:number): string {
+  if (jugadorRegistry.contains(idPrestamista) && jugadorRegistry.contains(idPrestatario) && idPrestatario!=idPrestamista) {
+    const prestamista= jugadorRegistry.get(idPrestamista)
+    const prestatario= jugadorRegistry.get(idPrestatario)
+
+    prestamista!.requests.set(idPrestatario,new Solicitud("Adeudo",prestatario!,cantidad,0.07))
+    prestatario!.requests.set(idPrestamista,new Solicitud("Deuda",prestamista!,cantidad,0.07))
+
+    jugadorRegistry.set(idPrestamista,prestamista!)
+    jugadorRegistry.set(idPrestatario,prestatario!)
+
+    return "Solicitud de préstamo enviada"
+  }
+  else{
+    return "Solicitud de prestamo fracasada. Revise los ID's de near de nuevo."
+  }
+}
+
 
 
 // export  function  verSolicitudes() {
@@ -46,7 +52,7 @@ export function setState(nombre:string,nearID:string,prestamo:boolean): string{
 
 //   if (jugadorRegistry.contains(nearID)) {
 //     const manejador=jugadorRegistry.get(nearID)
-//     manejador.requests.forEach((value: Solicitud, key: string) => {
+//     manejador!.requests.forEach((value: Solicitud, key: string) => {
 //       const solicitante=value.jugador
 //       const cantidad=value.cantidad
 //       const tipo=value.tipo
@@ -64,56 +70,88 @@ export function setState(nombre:string,nearID:string,prestamo:boolean): string{
 
 
 
-// export async function aceptarSolicitudes(idAjena:string,aceptar:boolean){
-//   const idPropia=Context.sender
-//   const decide=jugadorRegistry.get(idPropia)
-//   const depende=jugadorRegistry.get(idPropia)
-//   const solicitud=decide.requests.get(idAjena)
-//   if (aceptar) {
-//     if (solicitud.tipo=="Adeudo") {
-//       const deuda=solicitud.cantidad*(1+solicitud.interes)
+export  function aceptarSolicitudes(idAjena:string,aceptar:boolean){
+  const idPropia=Context.sender
+  const decide=jugadorRegistry.get(idPropia)
+  const depende=jugadorRegistry.get(idPropia)
+  const solicitud=decide!.requests.get(idAjena)
+  if (aceptar) {
+    if (solicitud!.tipo=="Adeudo") {
+      const deuda=solicitud!.cantidad*(1+solicitud!.interes)
+      //Deposito de near nivel 2
+      
+      decide!.adeudos.push(new Deuda(depende!,deuda,2021,7,27,"Adeudo"))
+      decide!.fondos-=deuda
+      decide!.transacciones.set("OtorgoPrestamo",deuda)
+      depende!.deudores.push(new Deuda(decide!,deuda,2021,7,27,"Deuda"))
+      depende!.fondos+=deuda
+      depende!.transacciones.set("RecibioPrestamo",deuda)
+      decide!.requests.delete(idAjena)
+      depende!.requests.delete(idPropia)
+      jugadorRegistry.set(idPropia,decide!)
+      jugadorRegistry.set(depende!.idNear,depende!)
 
-//       //Deposito de near
+      return "Se ha aceptado la deuda. Revisa tu cartera."
+    } else {
+      return "Solamente se pueden aceptar las solicituded de prestamo ajenas"
+    }
+  }
+  else{
+      decide!.requests.delete(idAjena)
+      depende!.requests.delete(idPropia)
+      jugadorRegistry.set(idPropia,decide!)
+      jugadorRegistry.set(depende!.idNear,depende!)
+    return "El jugador no ha aceptado tu solicitud de prestamo"
+  }
+}
+
+export function setApuesta(entrada:number,idNear:string,tipo:string,resultado:string) : string{
+  if (jugadorRegistry.contains(idNear)) {
+    const actual=jugadorRegistry.get(idNear)
+    actual!.fondos-=entrada
+    const ap=new Apuesta(entrada,idNear,tipo,resultado)
+    actual!.historial.push(ap)
+    return `Apuesta registrada exitosamente ${ap.apuestaToString()}`
+  }
+else{
+  return `El jugador no fue encontrado`
+}
+}
 
 
-//       decide.adeudos.push(new Deuda(depende,deuda,new Date(),"Adeudo"))
-//       depende.deudores.push(new Deuda(decide,deuda,new Date(),"Deuda"))
-//       decide.requests.delete(idAjena)
-//       depende.requests.delete(idPropia)
+export function getJugador(idNear:string) {
+  if (jugadorRegistry.contains(idNear)) {
+    logging.log(jugadorRegistry.get(idNear)?.toString())
+  }
+  else{
+    logging.log("El jugador no existe")
+  }
+}
 
 
+const DEFAULT_MESSAGE = 'Hello'
 
-//     } else {
-//       return "Solamente se pueden aceptar las solicituded de prestamo ajenas"
-//     }
-//   }
-//   else{
+// Exported functions will be part of the public interface for your smart contract.
+// Feel free to extract behavior to non-exported functions!
+export function getGreeting(accountId: string): string | null {
+  // This uses raw `storage.get`, a low-level way to interact with on-chain
+  // storage for simple contracts.
+  // If you have something more complex, check out persistent collections:
+  // https://docs.near.org/docs/concepts/data-storage#assemblyscript-collection-types
+  return storage.get<string>(accountId, DEFAULT_MESSAGE)
+}
 
-//   }
-// }
-// const DEFAULT_MESSAGE = 'Hello'
+export function setGreeting(message: string): void {
+  const account_id = Context.sender
 
-// // Exported functions will be part of the public interface for your smart contract.
-// // Feel free to extract behavior to non-exported functions!
-// export function getGreeting(accountId: string): string | null {
-//   // This uses raw `storage.get`, a low-level way to interact with on-chain
-//   // storage for simple contracts.
-//   // If you have something more complex, check out persistent collections:
-//   // https://docs.near.org/docs/concepts/data-storage#assemblyscript-collection-types
-//   return storage.get<string>(accountId, DEFAULT_MESSAGE)
-// }
+  // Use logging.log to record logs permanently to the blockchain!
+  logging.log(
+    // String interpolation (`like ${this}`) is a work in progress:
+    // https://github.com/AssemblyScript/assemblyscript/pull/1115
+    'Saving greeting "' + message + '" for account "' + account_id + '"'
+  )
 
-// export function setGreeting(message: string): void {
-//   const account_id = Context.sender
-
-//   // Use logging.log to record logs permanently to the blockchain!
-//   logging.log(
-//     // String interpolation (`like ${this}`) is a work in progress:
-//     // https://github.com/AssemblyScript/assemblyscript/pull/1115
-//     'Saving greeting "' + message + '" for account "' + account_id + '"'
-//   )
-
-//   storage.set(account_id, message)
-// }
+  storage.set(account_id, message)
+}
 
 
