@@ -35,6 +35,9 @@ git clone https://github.com/YuriAllexei/apuestas
 cd apuestas
 ```
 
+Video del proyecto -------> https://drive.google.com/drive/folders/1QLAfm_rlEs1NsFviLOl6VlmLMiL6Q2aN?usp=sharing
+
+
 🏗 instalar y compilar el contrato
 ```bash
     yarn install
