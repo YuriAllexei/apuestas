@@ -48,6 +48,12 @@ cd apuestas
 yarn dev-deploy ./contract/build/release/greeter.wasm
 ```
 
+
+
+```
+Video Del contrato en el siguiente link ---> https://drive.google.com/drive/folders/1QLAfm_rlEs1NsFviLOl6VlmLMiL6Q2aN?usp=sharing
+```
+
 🚂 Correr comandos
 Una vez deployado el contrato, cada método tiene sus argumentos de tal forma que hay que ingresarlos dependiendo de este. Se incita a crear una variable global con el nombre del 
 contrato con el siguiente comando:
